@@ -1,26 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-’Pˆêƒtƒ@ƒCƒ‹”Åibackend ’¼‰º‚É’u‚­j
-- CSV: backend/data/subjects.csviƒfƒtƒHƒ‹ƒgj
-  - ŠÂ‹«•Ï”‚Åã‘‚«‰Â”\: COURSES_CSV=/abs/path/to/subjects.csv
-  - ‚à‚µ‚­‚Í DATA_DIR=./data isubjects.csv ‚Í‚»‚Ì’¼‰º‚É‚ ‚é‘z’èj
-- API:
-  POST /gpa/compute
-  body:
-    {
-      "entries": [
-        {"name":"”÷•ªÏ•ªŠw‡T","grade":"A"},
-        {"name":"üŒ`‘ã”Šw‡T","grade":"B"}
-      ]
-    }
-  –ß‚è:
-    {
-      "gpa": 2.67,
-      "total_credits_counted": 5.0,
-      "details": [...],
-      "warnings": [...]
-    }
-"""
 
 from __future__ import annotations
 import os
@@ -32,36 +10,36 @@ from flask import Flask, request, jsonify
 
 
 # =========================
-# İ’èiŠÂ‹«•Ï”‚Å•ÏX‰Â”\j
+# è¨­å®šï¼ˆç’°å¢ƒå¤‰æ•°ã§å¤‰æ›´å¯èƒ½ï¼‰
 # =========================
 PORT = int(os.getenv("PORT", "8000"))
-# –¢“o˜^‰È–Ú‚ğb’è’l‚ÅŒvZ‚·‚é‚©i1/true ‚Å—LŒøj
+# æœªç™»éŒ²ç§‘ç›®ã‚’æš«å®šå€¤ã§è¨ˆç®—ã™ã‚‹ã‹ï¼ˆ1/true ã§æœ‰åŠ¹ï¼‰
 ALLOW_FALLBACK = os.getenv("ALLOW_FALLBACK", "1").lower() in {"1", "true", "yes"}
 TEMP_CREDITS = float(os.getenv("TEMP_CREDITS", "2.0"))
 
-# —ñ–¼ƒGƒCƒŠƒAƒXi“ú–{Œêƒwƒbƒ_‘Î‰j
-NAME_KEYS    = {"name", "‰È–Ú–¼", "u‹`–¼", "‰È–Ú"}
-CREDITS_KEYS = {"credits", "’PˆÊ”", "’PˆÊ"}
-FIELD_KEYS   = {"field", "¬‹æ•ªID", "•ª–ì", "ƒJƒeƒSƒŠ"}
+# åˆ—åã‚¨ã‚¤ãƒªã‚¢ã‚¹ï¼ˆæ—¥æœ¬èªãƒ˜ãƒƒãƒ€å¯¾å¿œï¼‰
+NAME_KEYS    = {"name", "ç§‘ç›®å", "è¬›ç¾©å", "ç§‘ç›®"}
+CREDITS_KEYS = {"credits", "å˜ä½æ•°", "å˜ä½"}
+FIELD_KEYS   = {"field", "å°åŒºåˆ†ID", "åˆ†é‡", "ã‚«ãƒ†ã‚´ãƒª"}
 
-# A~F ‚ğ 4.0~0.0 ‚É•ÏŠ·i}‚È‚µj
+# A~F ã‚’ 4.0~0.0 ã«å¤‰æ›ï¼ˆÂ±ãªã—ï¼‰
 GRADE_TO_POINT: Dict[str, float] = {
     "A": 4.0, "B": 3.0, "C": 2.0, "D": 1.0, "F": 0.0,
 }
 
 # =========================
-# CSV ƒ[ƒ_iBOM ‘Î‰j+ ƒLƒƒƒbƒVƒ…
+# CSV ãƒ­ãƒ¼ãƒ€ï¼ˆBOM å¯¾å¿œï¼‰+ ã‚­ãƒ£ãƒƒã‚·ãƒ¥
 # =========================
 _cache_lock = threading.RLock()
 _cache: Dict[str, Dict[str, Any]] = {}     # name -> {name, credits, field}
 _cache_mtime: Optional[float] = None
 _cache_path: Optional[str] = None
 _last_check = 0.0
-CHECK_INTERVAL = 2.0  # •b
+CHECK_INTERVAL = 2.0  # ç§’
 
 def _courses_csv_path() -> str:
     """
-    CSV ƒpƒX‚Ì‰ğŒˆ: COURSES_CSV > DATA_DIR/subjects.csv > ./data/subjects.csv
+    CSV ãƒ‘ã‚¹ã®è§£æ±º: COURSES_CSV > DATA_DIR/subjects.csv > ./data/subjects.csv
     """
     env = os.getenv("COURSES_CSV")
     if env:
@@ -78,17 +56,17 @@ def _normalize_headers(fieldnames) -> Dict[str, str]:
                 return c
         return default
 
-    # ƒfƒtƒHƒ‹ƒg‚Í“ú–{Œê‚Ì‘z’èƒwƒbƒ_‚ğ—Dæisubjects.csv ‚Ì—á‚É‡‚í‚¹‚éj
+    # ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯æ—¥æœ¬èªã®æƒ³å®šãƒ˜ãƒƒãƒ€ã‚’å„ªå…ˆï¼ˆsubjects.csv ã®ä¾‹ã«åˆã‚ã›ã‚‹ï¼‰
     return {
-        "name":    pick(NAME_KEYS, "‰È–Ú–¼"),
-        "credits": pick(CREDITS_KEYS, "’PˆÊ”"),
-        "field":   pick(FIELD_KEYS, "¬‹æ•ªID"),
+        "name":    pick(NAME_KEYS, "ç§‘ç›®å"),
+        "credits": pick(CREDITS_KEYS, "å˜ä½æ•°"),
+        "field":   pick(FIELD_KEYS, "å°åŒºåˆ†ID"),
     }
 
 def _load_csv_dict(path: str) -> Dict[str, Dict[str, Any]]:
     """
-    subjects.csv ‚ğ“Ç‚İ‚İAname ‚ğƒL[‚É«‘‰»B
-    BOM •t‚«‚Å‚àˆÀ‘S‚É“Ç‚Ş‚½‚ß encoding='utf-8-sig' ‚ğg—pB
+    subjects.csv ã‚’èª­ã¿è¾¼ã¿ã€name ã‚’ã‚­ãƒ¼ã«è¾æ›¸åŒ–ã€‚
+    BOM ä»˜ãã§ã‚‚å®‰å…¨ã«èª­ã‚€ãŸã‚ encoding='utf-8-sig' ã‚’ä½¿ç”¨ã€‚
     """
     db: Dict[str, Dict[str, Any]] = {}
     with open(path, "r", encoding="utf-8-sig", newline="") as f:
@@ -103,7 +81,7 @@ def _load_csv_dict(path: str) -> Dict[str, Dict[str, Any]]:
             try:
                 credits = float(credits_raw)
             except Exception:
-                # ”’l‚Å‚È‚¢’PˆÊ‚ÍƒXƒLƒbƒv
+                # æ•°å€¤ã§ãªã„å˜ä½ã¯ã‚¹ã‚­ãƒƒãƒ—
                 continue
             if credits <= 0:
                 continue
@@ -112,7 +90,7 @@ def _load_csv_dict(path: str) -> Dict[str, Dict[str, Any]]:
 
 def _maybe_reload(force: bool = False) -> None:
     """
-    CSV ‚ÌXV‚ğ 2 •bŠÔŠu‚ÅŒŸ’m‚µ‚ÄƒŠƒ[ƒhB
+    CSV ã®æ›´æ–°ã‚’ 2 ç§’é–“éš”ã§æ¤œçŸ¥ã—ã¦ãƒªãƒ­ãƒ¼ãƒ‰ã€‚
     """
     global _cache, _cache_mtime, _cache_path, _last_check
     path = _courses_csv_path()
@@ -137,10 +115,10 @@ def _maybe_reload(force: bool = False) -> None:
 
 def get_course_by_name(name: str) -> Tuple[Dict[str, Any], Optional[str]]:
     """
-    “ü—Í‚Ìu‹`–¼i‰È–Ú–¼j‚Éˆê’v‚·‚é {name, credits, field} ‚ğ•Ô‚·B
-    Œ©‚Â‚©‚ç‚È‚¢ê‡F
-      - ALLOW_FALLBACK=True ‚È‚çb’èƒNƒŒƒWƒbƒg‚Å•Ô‚µ warning •t—^
-      - False ‚Ìê‡‚Í ValueError
+    å…¥åŠ›ã®è¬›ç¾©åï¼ˆç§‘ç›®åï¼‰ã«ä¸€è‡´ã™ã‚‹ {name, credits, field} ã‚’è¿”ã™ã€‚
+    è¦‹ã¤ã‹ã‚‰ãªã„å ´åˆï¼š
+      - ALLOW_FALLBACK=True ãªã‚‰æš«å®šã‚¯ãƒ¬ã‚¸ãƒƒãƒˆã§è¿”ã— warning ä»˜ä¸
+      - False ã®å ´åˆã¯ ValueError
     """
     key = (name or "").strip()
     if not key:
@@ -163,12 +141,12 @@ def reload_courses_cache() -> None:
     _maybe_reload(force=True)
 
 # =========================
-# GPA ŒvZiƒˆƒƒWƒbƒNj
+# GPA è¨ˆç®—ï¼ˆç´”ç²‹ãƒ­ã‚¸ãƒƒã‚¯ï¼‰
 # =========================
 def compute_gpa(entries_with_meta: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     entries_with_meta: [{"name","grade","credits","field"}...]
-    GPA = ƒ°(point*credits) / ƒ°(credits) ‚ğ¬”‘æ2ˆÊ‚Å•Ô‚·B
+    GPA = Î£(point*credits) / Î£(credits) ã‚’å°æ•°ç¬¬2ä½ã§è¿”ã™ã€‚
     """
     if not entries_with_meta:
         return {"gpa": 0.00, "total_credits_counted": 0.0, "details": []}
@@ -204,20 +182,26 @@ def compute_gpa(entries_with_meta: List[Dict[str, Any]]) -> Dict[str, Any]:
     return {"gpa": gpa, "total_credits_counted": denom, "details": details}
 
 # =========================
-# Flask ƒAƒvƒŠ
+# Flask ã‚¢ãƒ—ãƒª
 # =========================
 def create_app() -> Flask:
     app = Flask(__name__)
 
+    app.config["JSON_AS_ASCII"] = False
+    try:
+        app.json.ensure_ascii = False
+    except Exception:
+        pass
+
     @app.post("/gpa/compute")
     def gpa_compute():
         """
-        óMJSON —á:
+        å—ä¿¡JSON ä¾‹:
         {
           "entries": [
-            {"name":"”÷•ªÏ•ªŠw‡T", "grade":"A"},
-            {"name":"üŒ`‘ã”Šw‡T", "grade":"B"},
-            {"name":"î•ñ—Ï—",   "grade":"F"}
+            {"name":"å¾®åˆ†ç©åˆ†å­¦â… ", "grade":"A"},
+            {"name":"ç·šå½¢ä»£æ•°å­¦â… ", "grade":"B"},
+            {"name":"æƒ…å ±å€«ç†",   "grade":"F"}
           ]
         }
         """
@@ -234,14 +218,14 @@ def create_app() -> Flask:
             for i, r in enumerate(rows):
                 name = (r.get("name") or "").strip()
                 grade = (r.get("grade") or "").strip().upper()
-                course, warn = get_course_by_name(name)  # CSV‚©‚ç credits/field ‚ğ‰ğŒˆ
+                course, warn = get_course_by_name(name)  # CSVã‹ã‚‰ credits/field ã‚’è§£æ±º
                 if warn:
                     warnings.append(warn)
                 assembled.append({
                     "name": name,
                     "grade": grade,
                     "credits": course["credits"],
-                    "field": course["field"],  # ¬‹æ•ªID “™
+                    "field": course["field"],  # å°åŒºåˆ†ID ç­‰
                 })
 
             result = compute_gpa(assembled)
@@ -259,10 +243,10 @@ def create_app() -> Flask:
 
     return app
 
-# ŠJ”­—pƒGƒ“ƒgƒŠ
+# é–‹ç™ºç”¨ã‚¨ãƒ³ãƒˆãƒª
 if __name__ == "__main__":
     app = create_app()
-    # subjects.csv ‚Ì‰‰ñƒ[ƒhi‘¶İ‚µ‚È‚­‚Ä‚à‹N“®‚Í‚·‚éj
+    # subjects.csv ã®åˆå›ãƒ­ãƒ¼ãƒ‰ï¼ˆå­˜åœ¨ã—ãªãã¦ã‚‚èµ·å‹•ã¯ã™ã‚‹ï¼‰
     try:
         reload_courses_cache()
     except Exception:

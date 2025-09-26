@@ -22,6 +22,8 @@
 ## フロントエンド起動 ##
 
 1. フロントエンドに移動
-2. ``` npm install ```
-3. ``` npm start ```
+2. npmをインストール
+   ``` npm install ```
+3. 実行する
+   ``` npm start ```
 

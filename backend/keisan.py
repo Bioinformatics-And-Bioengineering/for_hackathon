@@ -44,7 +44,7 @@ def _courses_csv_path() -> str:
     env = os.getenv("COURSES_CSV")
     if env:
         return os.path.abspath(env)
-    base = os.getenv("DATA_DIR", os.path.join(os.path.dirname(__file__), "data"))
+    base = os.getenv("DATA_DIR", os.path.dirname(__file__)) 
     return os.path.abspath(os.path.join(base, "subjects.csv"))
 
 def _normalize_headers(fieldnames) -> Dict[str, str]:

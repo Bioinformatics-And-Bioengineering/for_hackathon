@@ -19,4 +19,9 @@
    ```bash
    python app.py
    ```
+## フロントエンド起動 ##
+
+1. フロントエンドに移動
+2. ``` npm install ```
+3. ``` npm start ```
 

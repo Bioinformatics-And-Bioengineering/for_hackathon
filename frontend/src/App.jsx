@@ -1,6 +1,7 @@
 // src/App.jsx (または src/App.js) の内容を以下に上書き
 import MultipleSelectChip from "./components/selectBottun";
 import React, { useState, useEffect } from "react";
+import Box from "@mui/material/Box";
 // import './App.css'; // スタイルを気にしないならコメントアウトしてもOK
 
 function App() {
@@ -29,13 +30,28 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>Flask & React 連携サンプル</h1>
-        <p>
-          Flaskからのメッセージ: <strong>{message}</strong>
-        </p>
-      </header>
-      <MultipleSelectChip></MultipleSelectChip>
+      <Box
+        sx={{
+          display: "flex", // Flexboxを有効化
+          flexDirection: "column", // 子要素を縦方向に並べる
+          alignItems: "center", // 水平方向（クロス軸）に中央寄せ
+          // 画面全体で中央に配置したい場合は以下のスタイルも検討
+          // minHeight: '100vh',
+          // justifyContent: 'center', // 垂直方向（主軸）に中央寄せ
+          width: "100%", // 必要に応じて幅を設定
+        }}
+      >
+        <header className="App-header">
+          <h1>kagoshima-univercity 成績要件確認</h1>
+          <p>
+            Flaskからのメッセージ: <strong>{message}</strong>
+          </p>
+        </header>
+        <h3>学部</h3>
+        <MultipleSelectChip></MultipleSelectChip>
+        <h3>学科</h3>
+        <MultipleSelectChip></MultipleSelectChip>
+      </Box>
     </div>
   );
 }

@@ -39,7 +39,7 @@ function App() {
           // minHeight: '100vh',
           // justifyContent: 'center', // 垂直方向（主軸）に中央寄せ
           width: "100%", // 必要に応じて幅を設定
-        }}
+        }} //あ
       >
         <header className="App-header">
           <h1>kagoshima-univercity 成績要件確認</h1>

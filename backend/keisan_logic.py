@@ -2,6 +2,7 @@
 import os, csv, time, threading
 from typing import Dict, Any, Tuple, Optional, List
 from keisan_core import compute_gpa
+from keisan_requirements import check_requirements  #追加した
 
 # ===== 設定（環境変数で変更可）=====
 ALLOW_FALLBACK = os.getenv("ALLOW_FALLBACK", "1").lower() in {"1", "true", "yes"}
@@ -122,4 +123,9 @@ def assemble_and_compute(entries: List[Dict[str, Any]]) -> Dict[str, Any]:
         })
     result = compute_gpa(assembled)
     result["warnings"] = warnings
+
+    # ★ 卒業要件の判定を追加（CSVから要件を読み込み）（追加した)
+    req_report = check_requirements(assembled)
+    result["requirements"] = req_report
+
     return result

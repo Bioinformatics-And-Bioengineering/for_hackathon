@@ -2,6 +2,7 @@ from flask import Flask, request, Response
 import pandas as pd
 import json
 import os
+from keisan_logic import assemble_and_compute as assemble_and_compute_with_requirements
 
 app = Flask(__name__)
 
@@ -77,7 +78,7 @@ def compute_gpa():
     if not isinstance(rows, list):
         return Response(json.dumps({"error": "entries must be a list"}, ensure_ascii=False, indent=2), mimetype="application/json"), 400
     try:
-        result = assemble_and_compute(rows)
+        result = assemble_and_compute_with_requirements(rows)
         return Response(json.dumps(result, ensure_ascii=False, indent=2), mimetype="application/json"), 200
     except Exception as e:
         return Response(json.dumps({"error": str(e)}, ensure_ascii=False, indent=2), mimetype="application/json"), 500

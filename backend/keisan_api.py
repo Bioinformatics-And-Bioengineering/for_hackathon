@@ -2,7 +2,7 @@
 from typing import Any, Dict
 import os
 from flask import Flask, request, jsonify
-from logic import assemble_and_compute, reload_courses_cache
+from keisan_logic import assemble_and_compute, reload_courses_cache
 
 PORT = int(os.getenv("PORT", "8000"))
 

@@ -1,5 +1,6 @@
 import GeneralCreditForm from "./components/GeneralCreditForm"; // 👈 インポート
 import { useSearchParams } from "react-router-dom";
+import { Box } from "@mui/material";
 
 function CreditEntryPage() {
   // ... (useSearchParamsなどのロジックはそのまま)
@@ -10,16 +11,26 @@ function CreditEntryPage() {
   const dept = searchParams.get("dept");
   return (
     <div style={{ padding: "20px", textAlign: "center" }}>
-      <h2>単位入力フォーム</h2>
-      <p>
-        選択された学部: <strong>{faculty}</strong> / 学科:{" "}
-        <strong>{dept}</strong>
-      </p>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          width: "100%",
+          padding: 3, // 見やすさのために追加
+        }}
+      >
+        <h2>単位入力フォーム</h2>
+        <p>
+          選択された学部: <strong>{faculty}</strong> / 学科:{" "}
+          <strong>{dept}</strong>
+        </p>
 
-      {/* フォームコンポーネントを配置！ */}
-      <GeneralCreditForm />
+        {/* フォームコンポーネントを配置！ */}
+        <GeneralCreditForm />
 
-      {/* 他の専門科目フォームなどをここに追加 */}
+        {/* 他の専門科目フォームなどをここに追加 */}
+      </Box>
     </div>
   );
 }

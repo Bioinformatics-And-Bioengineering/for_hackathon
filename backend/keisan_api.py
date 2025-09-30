@@ -8,7 +8,7 @@ PORT = int(os.getenv("PORT", "8000"))
 
 def create_app() -> Flask:
     app = Flask(__name__)
-    # “ú–{Œê‚ª \u ƒGƒXƒP[ƒv‚³‚ê‚È‚¢‚æ‚¤‚É
+    # æ—¥æœ¬èªãŒ \u ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ã•ã‚Œãªã„ã‚ˆã†ã«
     app.config["JSON_AS_ASCII"] = False
     try:
         app.json.ensure_ascii = False
@@ -40,7 +40,7 @@ def create_app() -> Flask:
 if __name__ == "__main__":
     app = create_app()
     try:
-        reload_courses_cache()  # ‹N“®‚Éˆê“x“Ç‚İ‚Şi‘¶İ‚µ‚È‚­‚Ä‚àOKj
+        reload_courses_cache()  # èµ·å‹•æ™‚ã«ä¸€åº¦èª­ã¿è¾¼ã‚€ï¼ˆå­˜åœ¨ã—ãªãã¦ã‚‚OKï¼‰
     except Exception:
         pass
     app.run(host="0.0.0.0", port=PORT, debug=True)

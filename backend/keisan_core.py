@@ -1,7 +1,7 @@
 # gpa_core.py
 from typing import List, Dict, Any
 
-# A~F ¨ 4.0~0.0
+# A~F â†’ 4.0~0.0
 GRADE_TO_POINT: Dict[str, float] = {
     "A": 4.0, "B": 3.0, "C": 2.0, "D": 1.0, "F": 0.0,
 }
@@ -9,7 +9,7 @@ GRADE_TO_POINT: Dict[str, float] = {
 def compute_gpa(entries_with_meta: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     entries_with_meta: [{"name","grade","credits","field"}...]
-    GPA = ƒ°(point*credits) / ƒ°(credits) ‚ğ¬”‘æ2ˆÊ‚Å•Ô‚·
+    GPA = Î£(point*credits) / Î£(credits) ã‚’å°æ•°ç¬¬2ä½ã§è¿”ã™
     """
     if not entries_with_meta:
         return {"gpa": 0.00, "total_credits_counted": 0.0, "details": []}

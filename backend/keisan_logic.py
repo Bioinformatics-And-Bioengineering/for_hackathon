@@ -3,16 +3,16 @@ import os, csv, time, threading
 from typing import Dict, Any, Tuple, Optional, List
 from gpa_core import compute_gpa
 
-# ===== İ’èiŠÂ‹«•Ï”‚Å•ÏX‰Âj=====
+# ===== è¨­å®šï¼ˆç’°å¢ƒå¤‰æ•°ã§å¤‰æ›´å¯ï¼‰=====
 ALLOW_FALLBACK = os.getenv("ALLOW_FALLBACK", "1").lower() in {"1", "true", "yes"}
 TEMP_CREDITS = float(os.getenv("TEMP_CREDITS", "2.0"))
 
-# —ñ–¼ƒGƒCƒŠƒAƒX
-NAME_KEYS    = {"name", "‰È–Ú–¼", "u‹`–¼", "‰È–Ú"}
-CREDITS_KEYS = {"credits", "’PˆÊ”", "’PˆÊ"}
-FIELD_KEYS   = {"field", "¬‹æ•ªID", "•ª–ì", "ƒJƒeƒSƒŠ"}
+# åˆ—åã‚¨ã‚¤ãƒªã‚¢ã‚¹
+NAME_KEYS    = {"name", "ç§‘ç›®å", "è¬›ç¾©å", "ç§‘ç›®"}
+CREDITS_KEYS = {"credits", "å˜ä½æ•°", "å˜ä½"}
+FIELD_KEYS   = {"field", "å°åŒºåˆ†ID", "åˆ†é‡", "ã‚«ãƒ†ã‚´ãƒª"}
 
-# ===== CSVƒpƒXibackend’¼‰º subjects.csv ‚ğŠù’èj=====
+# ===== CSVãƒ‘ã‚¹ï¼ˆbackendç›´ä¸‹ subjects.csv ã‚’æ—¢å®šï¼‰=====
 def _courses_csv_path() -> str:
     env = os.getenv("COURSES_CSV")
     if env:
@@ -20,7 +20,7 @@ def _courses_csv_path() -> str:
     base = os.getenv("DATA_DIR", os.path.dirname(__file__))  # backend/
     return os.path.abspath(os.path.join(base, "subjects.csv"))
 
-# ===== Œy—ÊƒLƒƒƒbƒVƒ… =====
+# ===== è»½é‡ã‚­ãƒ£ãƒƒã‚·ãƒ¥ =====
 _cache_lock = threading.RLock()
 _cache: Dict[str, Dict[str, Any]] = {}  # name -> {name, credits, field}
 _cache_mtime: Optional[float] = None
@@ -36,14 +36,14 @@ def _normalize_headers(fieldnames) -> Dict[str, str]:
                 return c
         return default
     return {
-        "name":    pick(NAME_KEYS, "‰È–Ú–¼"),
-        "credits": pick(CREDITS_KEYS, "’PˆÊ”"),
-        "field":   pick(FIELD_KEYS, "¬‹æ•ªID"),
+        "name":    pick(NAME_KEYS, "ç§‘ç›®å"),
+        "credits": pick(CREDITS_KEYS, "å˜ä½æ•°"),
+        "field":   pick(FIELD_KEYS, "å°åŒºåˆ†ID"),
     }
 
 def _load_csv_dict(path: str) -> Dict[str, Dict[str, Any]]:
     db: Dict[str, Dict[str, Any]] = {}
-    with open(path, "r", encoding="utf-8-sig", newline="") as f:  # BOM‘Î‰
+    with open(path, "r", encoding="utf-8-sig", newline="") as f:  # BOMå¯¾å¿œ
         reader = csv.DictReader(f)
         header_map = _normalize_headers(reader.fieldnames or [])
         for row in reader:
@@ -98,13 +98,13 @@ def get_course_by_name(name: str) -> Tuple[Dict[str, Any], Optional[str]]:
 def reload_courses_cache() -> None:
     _maybe_reload(force=True)
 
-# ===== ƒƒWƒbƒN‚ÌŒöŠJAPIF“ü—Íiname, gradej‚ğó‚¯‚ÄuŒvZ-readyv‚Ö‘g‚İ—§‚Ä =====
+# ===== ãƒ­ã‚¸ãƒƒã‚¯ã®å…¬é–‹APIï¼šå…¥åŠ›ï¼ˆname, gradeï¼‰ã‚’å—ã‘ã¦ã€Œè¨ˆç®—-readyã€ã¸çµ„ã¿ç«‹ã¦ =====
 def assemble_and_compute(entries: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    entries: [{"name":"c","grade":"A"}, ...]
-    - CSV‚©‚ç credits / field ‚ğ‰ğŒˆ
-    - GPA‚ğŒvZ
-    - warnings ‚ğ•t—^
+    entries: [{"name":"â€¦","grade":"A"}, ...]
+    - CSVã‹ã‚‰ credits / field ã‚’è§£æ±º
+    - GPAã‚’è¨ˆç®—
+    - warnings ã‚’ä»˜ä¸
     """
     assembled: List[Dict[str, Any]] = []
     warnings: List[str] = []

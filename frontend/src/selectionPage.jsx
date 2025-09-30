@@ -5,12 +5,14 @@ import NativeSelectDemo from "./components/selectBottun"; // パスはあなた�
 import BasicButtons from "./components/button";
 // 補完されたデータ定義
 const facultyOptions = [
+  { value: "default", label: "" },
   { value: "engi", label: "工学部" },
   { value: "edu", label: "教育学部" },
   { value: "sci", label: "理学部" },
 ];
 
 const departmentOptions = [
+  { value: "default", label: "" },
   { value: "info", label: "情報生体工学プログラム" },
   { value: "machine", label: "機械工学プログラム" },
   { value: "electric", label: "電気電子工学プログラム" },

@@ -1,7 +1,7 @@
 # logic.py
 import os, csv, time, threading
 from typing import Dict, Any, Tuple, Optional, List
-from gpa_core import compute_gpa
+from keisan_core import compute_gpa
 
 # ===== 設定（環境変数で変更可）=====
 ALLOW_FALLBACK = os.getenv("ALLOW_FALLBACK", "1").lower() in {"1", "true", "yes"}

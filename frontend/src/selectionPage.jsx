@@ -1,3 +1,4 @@
+// ページ遷移のプログラム
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // ★ useNavigate をインポート
 import Box from "@mui/material/Box"; // ★ Box をインポート

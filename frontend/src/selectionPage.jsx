@@ -26,6 +26,7 @@ function SelectionPage() {
   const [selectedFaculty, setSelectedFaculty] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
 
+  //p1からp2への移動を促す
   const handlePageMove = () => {
     if (selectedFaculty && selectedDepartment) {
       navigate(

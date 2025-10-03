@@ -1,9 +1,14 @@
 import GeneralCreditForm from "./components/GeneralCreditForm"; // 👈 インポート
-import { useSearchParams } from "react-router-dom";
+//import { useSearchParams } from "react-router-dom";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
 
+//kohe
+import { useSearchParams, useNavigate } from "react-router-dom";
+import BasicButtons from "./components/button";
+
 function CreditEntryPage() {
+  const navigate = useNavigate();
   // ... (useSearchParamsなどのロジックはそのまま)
   const [searchParams] = useSearchParams();
 
@@ -45,6 +50,14 @@ function CreditEntryPage() {
       </Box>
     );
   }
+  const handleGoResults = () => {
+    const g = localStorage.getItem("gpa");
+    const params = new URLSearchParams();
+    if (faculty) params.set("faculty", faculty);
+    if (dept) params.set("dept", dept);
+    if (g) params.set("gpa", g);
+    navigate(`/results${params.toString() ? `?${params}` : ""}`);
+  };
 
   return (
     <div style={{ padding: "20px", textAlign: "center" }}>
@@ -65,8 +78,8 @@ function CreditEntryPage() {
 
         {/* フォームコンポーネントを配置！ */}
         <GeneralCreditForm subjectNames={subjectNames} />
-
         {/* 他の専門科目フォームなどをここに追加 */}
+        <BasicButtons onClick={handleGoResults} />
       </Box>
     </div>
   );

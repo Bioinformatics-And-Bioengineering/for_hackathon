@@ -1,6 +1,6 @@
 import GeneralCreditForm from "./components/GeneralCreditForm"; // 👈 インポート
 import { useSearchParams } from "react-router-dom";
-import { Box } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
 
 function CreditEntryPage() {
@@ -10,11 +10,11 @@ function CreditEntryPage() {
   // 💡 修正: URLから学部と学科の情報を取得し、変数として定義
   const faculty = searchParams.get("faculty");
   const dept = searchParams.get("dept");
-  const [message, setMessage] = useState("Loading...");
+  const [subjectNames, setSubjectNames] = useState(null); // 初期値を null に変更 (ロード中を表す)
 
   // 補完された useEffect (Flask API呼び出し)
   useEffect(() => {
-    fetch("http://localhost:5000/api/message")
+    fetch("http://localhost:5000/api/subjects")
       .then((response) => {
         if (!response.ok) {
           throw new Error("Network response was not ok");
@@ -22,13 +22,29 @@ function CreditEntryPage() {
         return response.json();
       })
       .then((data) => {
-        setMessage(data.message);
+        setSubjectNames(data.subjects);
       })
       .catch((error) => {
         console.error("Fetch error: ", error);
-        setMessage("Failed to connect to Flask API.");
+        setSubjectNames("Failed to connect to Flask API.");
       });
   }, []);
+  // ロード中またはエラー表示
+  if (subjectNames === null) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 5 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (typeof subjectNames === "string") {
+    return (
+      <Box sx={{ textAlign: "center", p: 5 }}>
+        <Typography color="error">エラー: {subjectNames}</Typography>
+      </Box>
+    );
+  }
 
   return (
     <div style={{ padding: "20px", textAlign: "center" }}>
@@ -41,9 +57,6 @@ function CreditEntryPage() {
           padding: 3, // 見やすさのために追加
         }}
       >
-        <p>
-          Flaskからのメッセージ: <strong>{message}</strong>
-        </p>
         <h2>単位入力フォーム</h2>
         <p>
           選択された学部: <strong>{faculty}</strong> / 学科:{" "}
@@ -51,7 +64,7 @@ function CreditEntryPage() {
         </p>
 
         {/* フォームコンポーネントを配置！ */}
-        <GeneralCreditForm />
+        <GeneralCreditForm subjectNames={subjectNames} />
 
         {/* 他の専門科目フォームなどをここに追加 */}
       </Box>

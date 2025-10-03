@@ -1,15 +1,15 @@
-# gpa_core.py
+# keisan_core.py
 from typing import List, Dict, Any
 
-# A~F → 4.0~0.0
+# 唯一の点数換算法
 GRADE_TO_POINT: Dict[str, float] = {
     "A": 4.0, "B": 3.0, "C": 2.0, "D": 1.0, "F": 0.0,
 }
 
 def compute_gpa(entries_with_meta: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    entries_with_meta: [{"name","grade","credits","field"}...]
-    GPA = Σ(point*credits) / Σ(credits) を小数第2位で返す
+    entries: [{"name","grade","credits","field"}...]
+    GPA = Σ(point*credits) / Σ(credits) を小数第2位に丸めて返す
     """
     if not entries_with_meta:
         return {"gpa": 0.00, "total_credits_counted": 0.0, "details": []}
@@ -26,7 +26,6 @@ def compute_gpa(entries_with_meta: List[Dict[str, Any]]) -> Dict[str, Any]:
             raise ValueError(f"entries[{i}].name is empty")
         if grade_raw not in GRADE_TO_POINT:
             raise ValueError(f"entries[{i}].grade '{grade_raw}' not supported (A/B/C/D/F)")
-
         try:
             cr = float(credits)
         except Exception:
@@ -37,7 +36,6 @@ def compute_gpa(entries_with_meta: List[Dict[str, Any]]) -> Dict[str, Any]:
         point = GRADE_TO_POINT[grade_raw]
         numer += point * cr
         denom += cr
-
         details.append({
             "name": name, "grade": grade_raw, "point": point,
             "credits": cr, "field": e.get("field", "TBD"),

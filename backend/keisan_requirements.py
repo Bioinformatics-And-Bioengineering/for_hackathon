@@ -9,6 +9,8 @@ REQ_CSV = os.getenv("GRAD_REQ_CSV", os.path.abspath(os.path.join(os.path.dirname
 SUBCATS_CSV = os.getenv("SUBCATEGORIES_CSV", os.path.abspath(os.path.join(os.path.dirname(__file__), "subcategories.csv")))
 CATS_CSV = os.getenv("CATEGORIES_CSV", os.path.abspath(os.path.join(os.path.dirname(__file__), "categories.csv")))
 MAINCATS_CSV = os.getenv("MAINCATEGORIES_CSV", os.path.abspath(os.path.join(os.path.dirname(__file__), "maincategories.csv")))
+ENTRIES_CSV = os.getenv("ENTRIES_CSV", os.path.abspath(os.path.join(os.path.dirname(__file__), "entries.csv")))
+
 
 def _load_graduation_requirements(path: str = REQ_CSV) -> Dict[int, float]:
     """
@@ -91,34 +93,19 @@ def _safe_int(x: Any) -> int | None:
         return None
 
 def check_requirements(
-    entries_with_meta: List[Dict[str, Any]],
     *,
+    entries_csv: str = ENTRIES_CSV,
     req_csv: str = REQ_CSV,
     subcats_csv: str = SUBCATS_CSV,
     cats_csv: str = CATS_CSV,
     maincats_csv: str = MAINCATS_CSV,
 ) -> Dict[str, Any]:
     """
-    entries_with_meta: [{"name","grade","credits","field"}...]
-      - grade == "F" は取得単位に含めない
-      - field は subjects.csv の「小区分ID」に相当することを想定
-    戻り値:
-    {
-      "ok": bool,
-      "by_subcategory": [
-        {"小区分ID":7, "小区分":"分野基盤科目", "required":6, "earned":6, "short":0},
-        ...
-      ],
-      "by_major": [
-        {"大区分ID":1, "大区分":"プログラム科目", "required":XX, "earned":YY, "short":max(0, ...)}
-      ],
-      "by_maincategory": [
-        {"カテゴリID":2, "カテゴリ区分":"情報生体専門科目", "required":..., "earned":..., "short":...}
-      ],
-      "short_summary": {"合計不足": 14},  # 0 ならクリア
-      "warnings": [...]
-    }
+    entries.csv を読み取り、卒業要件を集計する。
     """
+    # ★ここが新規：常に CSV を読む
+    entries_with_meta = _load_entries_from_csv(entries_csv)
+    
     # マスタ読込
     req_map = _load_graduation_requirements(req_csv)
     sub_db = _load_subcategories(subcats_csv)
@@ -219,3 +206,35 @@ def check_requirements(
         "warnings": warnings,
     }
 
+def _normalize_entry_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    # 想定: 科目名/name, 評価/grade, 単位数/credits, 小区分ID/field/subcategory_id
+    def pick(d, keys, default=""):
+        for k in keys:
+            if k in d and d[k] not in (None, ""):
+                return d[k]
+        return default
+
+    name = pick(row, ["科目名", "name", "subject", "title"])
+    grade = str(pick(row, ["評価", "grade"])).strip().upper()
+
+    credits_raw = pick(row, ["単位数", "credits"])
+    try:
+        credits = float(str(credits_raw).strip()) if credits_raw != "" else 0.0
+    except Exception:
+        credits = 0.0
+
+    field_raw = pick(row, ["小区分ID", "field", "subcategory_id"])
+    try:
+        field = int(str(field_raw).strip()) if field_raw != "" else None
+    except Exception:
+        field = None
+
+    return {"name": name, "grade": grade, "credits": credits, "field": field}
+
+def _load_entries_from_csv(path: str = ENTRIES_CSV) -> List[Dict[str, Any]]:
+    entries: List[Dict[str, Any]] = []
+    with open(path, "r", encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            entries.append(_normalize_entry_row(row))
+    return entries

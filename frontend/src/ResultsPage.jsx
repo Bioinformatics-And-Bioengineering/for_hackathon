@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -23,6 +23,23 @@ export default function ResultsPage() {
   }, [sp]);
 
   const [gpa, setGpa] = useState(initial);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/gpa/summary")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setGpa(data.gpa);
+      })
+      .catch((error) => {
+        console.error("Fetch error: ", error);
+        setGpa("Failed to connect to Flask API.");
+      });
+  }, []);
 
   // 表示用の丸め（数値でなければ null 扱い）
   const gpaDisp = useMemo(() => {

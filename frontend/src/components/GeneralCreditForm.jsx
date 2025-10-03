@@ -30,10 +30,15 @@ function GeneralCreditForm({ subjectNames }) {
     event.preventDefault(); // 👈 これでページのリロードを防ぎます
 
     // 1. 送信するデータ（科目名と評定のオブジェクト）
-    const submissionData = inputGrades;
+    const submissionData = Object.keys(inputGrades).map((subjectName) => {
+      return {
+        name: subjectName,
+        grade: inputGrades[subjectName],
+      };
+    });
 
     // 2. Flaskでデータを受け取るエンドポイント
-    const url = "http://localhost:5000/api/save-credits";
+    const url = "http://localhost:5000/gpa/save";
 
     try {
       const response = await fetch(url, {
@@ -45,7 +50,7 @@ function GeneralCreditForm({ subjectNames }) {
         },
 
         // 4. ボディ: JavaScriptオブジェクトをJSON文字列に変換して格納
-        body: JSON.stringify(submissionData),
+        body: JSON.stringify({ entries: submissionData }),
       });
 
       // 5. ネットワークエラーチェック

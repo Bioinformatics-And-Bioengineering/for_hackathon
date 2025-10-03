@@ -21,6 +21,55 @@ function GeneralCreditForm({ subjectNames }) {
       [subjectName]: newValue, // 変更された科目名 (キー) の値を更新
     }));
   };
+  // GeneralCreditForm.js (handleSubmit部分のみ)
+
+  // ... (useState, useEffect, handleChange の定義は省略) ...
+
+  // フォーム送信時の処理
+  const handleSubmit = async (event) => {
+    event.preventDefault(); // 👈 これでページのリロードを防ぎます
+
+    // 1. 送信するデータ（科目名と評定のオブジェクト）
+    const submissionData = inputGrades;
+
+    // 2. Flaskでデータを受け取るエンドポイント
+    const url = "http://localhost:5000/api/save-credits";
+
+    try {
+      const response = await fetch(url, {
+        method: "POST", // 👈 POSTメソッドを指定
+
+        // 3. ヘッダー: 送信するデータがJSONであることをサーバーに伝えます
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        // 4. ボディ: JavaScriptオブジェクトをJSON文字列に変換して格納
+        body: JSON.stringify(submissionData),
+      });
+
+      // 5. ネットワークエラーチェック
+      if (!response.ok) {
+        // 例: 404, 500などのHTTPエラーの場合
+        throw new Error(
+          `データの送信に失敗しました。ステータスコード: ${response.status}`
+        );
+      }
+
+      const result = await response.json();
+
+      // 6. 成功時の処理 (サーバーからの応答を表示)
+      console.log("サーバーからの応答:", result);
+      alert(`データを登録しました！ サーバーメッセージ: ${result.message}`);
+    } catch (error) {
+      // 7. 失敗時の処理 (CORSエラーやネットワーク接続エラーなど)
+      console.error("送信エラー:", error);
+      alert(`データの送信中にエラーが発生しました。\n詳細: ${error.message}`);
+    }
+  };
+
+  // ... (省略: return文内の <Box component="form" onSubmit={handleSubmit}> ... )
+
   useEffect(() => {
     if (Array.isArray(subjectNames)) {
       const initialGrades = subjectNames.reduce((acc, name) => {
@@ -72,6 +121,12 @@ function GeneralCreditForm({ subjectNames }) {
           {JSON.stringify(inputGrades, null, 2)}
         </pre>
       </Paper>
+      <button
+        onClick={handleSubmit}
+        style={{ width: "150px", height: "60px", fontSize: "18px" }}
+      >
+        確定
+      </button>
     </Box>
   );
 }

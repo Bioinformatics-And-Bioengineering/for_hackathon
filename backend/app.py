@@ -1,6 +1,7 @@
 # 必要なライブラリをインポート
 from flask import Flask, jsonify
 from flask_cors import CORS
+from flasgger import Swagger
 import csv
 
 from keisan_api import keisan_bp
@@ -9,6 +10,7 @@ from keisan_logic import reload_courses_cache
 
 # Flaskアプリケーションのインスタンスを作成
 app = Flask(__name__)
+swagger = Swagger(app, template_file='docs/swagger.yaml')
 
 # ★★★ この一行を追加 ★★★
 # JSONレスポンスで日本語がUnicodeエスケープされないように設定

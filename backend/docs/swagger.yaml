@@ -1,0 +1,340 @@
+openapi: 3.0.4
+info:
+  title: 成績管理API
+  description: |-
+    成績管理システムのためのAPIドキュメントです。このAPIを使用して、学生の成績情報を取得、追加、更新、削除することができます。
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: ローカル開発サーバー
+  - url: https://example.com/api
+    description: 本番環境サーバー
+tags:
+  - name: 成績
+    description: 成績に関するすべて
+  - name: pet
+    description: Everything about your Pets
+    externalDocs:
+      description: Find out more about our Pets
+      url: https://swagger.io
+  - name: store
+    description: Access to Petstore orders
+    externalDocs:
+      description: Find out more about our store
+      url: https://swagger.io
+  - name: user
+    description: Operations about user
+paths:
+  /healthz:
+    get:
+      tags:
+        - 成績
+      summary: ヘルスチェックエンドポイント
+      description: サービスが正常に稼働しているかを確認するためのエンドポイントです。
+      responses:
+        '200':
+          description: サービスは正常に稼働しています
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: string
+                    example: true
+  /api/subjects:
+    get:
+      tags:
+        - 成績
+      summary: 取得すべき教科名一覧の取得
+      description: ユーザーの専攻に応じた教科名をCSVファイルから取得します。
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subject'
+        '404':
+          description: subject.csvが見つかりません
+        '500':
+          description: サーバーエラー
+  /gpa/save:
+    post:
+      tags:
+        - 成績
+      summary: 成績データの保存
+      description: ユーザーの成績データを受け取り、CSVファイルに保存します。
+      requestBody:
+        description: 成績データ
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                grades:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      subject:
+                        type: string
+                        example: 微分積分学Ⅰ
+                      grade:
+                        type: number
+                        example: 3
+      responses:
+        '200':
+          description: 成績データが正常に保存されました
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: entries processed
+                  saved:
+                    type: integer
+                    example: 3
+                    description: 保存されたデータ数
+        '404':
+          description: コンテナタイプがJSONではない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Content-Type application/json required
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: internal error
+  /gpa/summary:
+    get:
+      tags:
+        - 成績
+      summary: GPAをすべて返す
+      description: 累積取得：entries.csv 全件から GPA を返す（保存値＝当時の名称/単位/小区分で計算）
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradeResponse'
+              examples:
+                example1:
+                  summary: サンプルレスポンス
+                  value:
+                    details:
+                      - credits: 2
+                        field: '7'
+                        grade: 'A'
+                        name: '微分積分学Ⅰ'
+                        point: 4
+                      - credits: 2
+                        field: '7'
+                        grade: 'C'
+                        name: '線形代数学Ⅰ'
+                        point: 2
+                      - credits: 2
+                        field: '5'
+                        grade: 'A'
+                        name: '先端計測学'
+                        point: 4
+                    gpa: 3.33
+                    total_credits_counted: 6
+                    warnings: []
+                    requirements:
+                      ok: false
+                      short_summary:
+                        合計不足: 88
+                      warnings: []
+                      by_maincategory:
+                        - earned: 6
+                          required: 94
+                          short: 88
+                          カテゴリID: 2
+                          カテゴリ区分: '情報生体専門科目'
+                      by_major:
+                        - earned: 0
+                          required: 80
+                          short: 80
+                          大区分: 'プログラム科目'
+                          大区分ID: 1
+                        - earned: 6
+                          required: 14
+                          short: 8
+                          大区分: '学部・学科共通科目'
+                          大区分ID: 2
+                      by_subcategory:
+                        - earned: 0
+                          required: 43
+                          short: 43
+                          小区分: '分野基盤科目'
+                          小区分ID: 1
+                        - earned: 4
+                          required: 6
+                          short: 2
+                          小区分: '工学基礎教育強化科目'
+                          小区分ID: 7
+        '404':
+          description: データが見つかりません
+        '500':
+          description: サーバーエラー
+components:
+  schemas:
+    Subject:
+      type: object
+      properties:
+        subjects:
+          type: array
+          items:
+            type: string
+            example:
+              - 微分積分学Ⅰ
+              - 線形代数学
+              - 物理学基礎Ⅰ
+              - 工学概論
+              - 環境保全と防災
+              - 科学技術と生産
+    GradeDetail:
+      type: object
+      description: 各科目の詳細情報
+      properties:
+        credits:
+          type: integer
+          example: 2
+        field:
+          type: string
+          example: '7'
+        grade:
+          type: string
+          example: 'A'
+        name:
+          type: string
+          example: '微分積分学Ⅰ'
+        point:
+          type: number
+          example: 4
+
+    RequirementMainCategory:
+      type: object
+      properties:
+        earned:
+          type: integer
+          example: 6
+          description: 現在取得している単位数
+        required:
+          type: integer
+          example: 94
+          description: 取得すべき単位数
+        short:
+          type: integer
+          example: 88
+          description: 残りの単位数
+        カテゴリID:
+          type: integer
+          example: 2
+        カテゴリ区分:
+          type: string
+          example: '情報生体専門科目'
+
+    RequirementMajor:
+      type: object
+      properties:
+        earned:
+          type: integer
+          example: 6
+        required:
+          type: integer
+          example: 14
+        short:
+          type: integer
+          example: 8
+        大区分:
+          type: string
+          example: '学部・学科共通科目'
+        大区分ID:
+          type: integer
+          example: 2
+
+    RequirementSubCategory:
+      type: object
+      properties:
+        earned:
+          type: integer
+          example: 4
+        required:
+          type: integer
+          example: 6
+        short:
+          type: integer
+          example: 2
+        小区分:
+          type: string
+          example: '工学基礎教育強化科目'
+        小区分ID:
+          type: integer
+          example: 7
+
+    RequirementSummary:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: false
+        short_summary:
+          type: object
+          properties:
+            合計不足:
+              type: integer
+              example: 88
+        warnings:
+          type: array
+          items:
+            type: string
+          example: []
+        by_maincategory:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequirementMainCategory'
+        by_major:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequirementMajor'
+        by_subcategory:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequirementSubCategory'
+
+    GradeResponse:
+      type: object
+      properties:
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/GradeDetail'
+        gpa:
+          type: number
+          example: 3.33
+        total_credits_counted:
+          type: integer
+          example: 6
+        warnings:
+          type: array
+          items:
+            type: string
+          example: []
+        requirements:
+          $ref: '#/components/schemas/RequirementSummary'
